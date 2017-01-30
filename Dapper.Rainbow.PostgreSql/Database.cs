@@ -149,6 +149,21 @@ namespace Dapper
 				}
 			}
 
+			/// <summary>
+			/// Insert a row into the db
+			/// </summary>
+			/// <param name="data">Either DynamicParameters or an anonymous type or concrete type</param>
+			/// <returns></returns>
+			public int InsertOrUpdate(dynamic data)
+			{
+				var paramNames = GetParamNames((object)data);
+				string cols = string.Join("`,`", paramNames);
+				string cols_params = string.Join(",", paramNames.Select(p => "@" + p.Key));
+				string cols_update = string.Join(",", paramNames.Select(p => $"`{p.Key}` = @{p.Key}"));
+				var sql = $"INSERT INTO `{TableName}` (`{cols}`) VALUES ({cols_params}) ON CONFLICT DO UPDATE SET {cols_update}";
+				return database.Execute(sql, data);
+			}
+
             /// <summary>
             /// Delete a record for the DB
             /// </summary>
